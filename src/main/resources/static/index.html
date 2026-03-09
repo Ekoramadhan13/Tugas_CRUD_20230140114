@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Manajemen Data KTP</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: 'Segoe UI', Tahoma, sans-serif;
+          background: #eef2f7;
+          color: #2d3748;
+          min-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+          background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+          color: #fff;
+          padding: 24px 20px;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        }
+        header h1 { font-size: 28px; letter-spacing: .5px; }
+        header p  { margin-top: 6px; font-size: 13px; opacity: .8; }
+
+        /* ===== LAYOUT ===== */
+        .container {
+          max-width: 1200px;
+          margin: 32px auto;
+          padding: 0 20px;
+        }
+
+        /* ===== CARD ===== */
+        .card {
+          background: #fff;
+          border-radius: 14px;
+          box-shadow: 0 2px 16px rgba(0,0,0,.08);
+          padding: 28px 30px;
+          margin-bottom: 28px;
+        }
+        .card-title {
+          font-size: 17px;
+          font-weight: 700;
+          color: #1a365d;
+          margin-bottom: 22px;
+          padding-left: 14px;
+          border-left: 4px solid #3182ce;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* ===== FORM ===== */
+        .form-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 18px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+          font-size: 12px;
+          font-weight: 700;
+          color: #4a5568;
+          text-transform: uppercase;
+          letter-spacing: .6px;
+        }
+        label span { color: #e53e3e; }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+          padding: 10px 14px;
+          border: 1.5px solid #cbd5e0;
+          border-radius: 9px;
+          font-size: 14px;
+          color: #2d3748;
+          background: #fff;
+          transition: border-color .2s, box-shadow .2s;
+          width: 100%;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+          outline: none;
+          border-color: #3182ce;
+          box-shadow: 0 0 0 3px rgba(49,130,206,.15);
+        }
+        input::placeholder { color: #a0aec0; }
+
+        /* ===== BUTTONS ===== */
+        .btn-group { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+        .btn {
+          padding: 10px 24px;
+          border: none;
+          border-radius: 9px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all .2s;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .btn:disabled { opacity: .65; cursor: not-allowed; transform: none !important; }
+        .btn:active:not(:disabled) { transform: scale(.97); }
+
+        .btn-blue   { background: #3182ce; color: #fff; }
+        .btn-blue:hover:not(:disabled)   { background: #2c5282; }
+
+        .btn-green  { background: #38a169; color: #fff; }
+        .btn-green:hover:not(:disabled)  { background: #276749; }
+
+        .btn-yellow { background: #d69e2e; color: #fff; }
+        .btn-yellow:hover:not(:disabled) { background: #b7791f; }
+
+        .btn-red    { background: #e53e3e; color: #fff; }
+        .btn-red:hover:not(:disabled)    { background: #c53030; }
+
+        .btn-gray   { background: #718096; color: #fff; }
+        .btn-gray:hover:not(:disabled)   { background: #4a5568; }
+
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 7px; }
+
+        /* ===== TABLE ===== */
+        .table-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .data-count {
+          background: #ebf8ff;
+          color: #2b6cb0;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: 20px;
+        }
+        .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0; }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 14px;
+          min-width: 760px;
+        }
+        thead tr {
+          background: linear-gradient(90deg, #1a365d, #2b6cb0);
+          color: #fff;
+        }
+        thead th {
+          padding: 13px 16px;
+          text-align: left;
+          font-weight: 600;
+          white-space: nowrap;
+          font-size: 13px;
+          letter-spacing: .4px;
+        }
+        tbody tr {
+          border-bottom: 1px solid #edf2f7;
+          transition: background .15s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #ebf8ff; }
+        tbody td {
+          padding: 11px 16px;
+          vertical-align: middle;
+        }
+        tbody td.center { text-align: center; }
+
+        .ktp-number {
+          font-family: 'Courier New', monospace;
+          font-size: 13px;
+          font-weight: 700;
+          color: #2b6cb0;
+          background: #ebf8ff;
+          padding: 3px 8px;
+          border-radius: 5px;
+        }
+        .alamat-cell {
+          max-width: 180px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .5px;
+        }
+        .badge-l { background: #ebf8ff; color: #2b6cb0; }
+        .badge-p { background: #fff5f7; color: #d53f8c; }
+
+        .action-btns { display: flex; gap: 6px; }
+
+        /* State kosong / loading */
+        .state-row td {
+          padding: 50px 20px;
+          text-align: center;
+          color: #a0aec0;
+          font-size: 15px;
+        }
+        .state-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+
+        /* ===== TOAST ===== */
+        #toast {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          z-index: 9999;
+          padding: 14px 20px;
+          border-radius: 11px;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          min-width: 280px;
+          max-width: 380px;
+          box-shadow: 0 8px 24px rgba(0,0,0,.2);
+          display: none;
+          align-items: center;
+          gap: 10px;
+        }
+        .toast-success { background: linear-gradient(135deg, #1a7a4a, #38a169); }
+        .toast-error   { background: linear-gradient(135deg, #9b1c1c, #e53e3e); }
+        .toast-info    { background: linear-gradient(135deg, #1a4e8a, #3182ce); }
+
+        /* ===== OVERLAY MODAL ===== */
+        .overlay {
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,.55);
+          z-index: 1000;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(2px);
+        }
+        .overlay.active { display: flex; }
+
+        .modal {
+          background: #fff;
+          border-radius: 16px;
+          padding: 32px;
+          width: 100%;
+          max-width: 680px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 60px rgba(0,0,0,.25);
+          animation: modalIn .25s ease;
+        }
+        @keyframes modalIn {
+          from { transform: translateY(-20px); opacity: 0; }
+          to   { transform: translateY(0);     opacity: 1; }
+        }
+        .modal-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          padding-bottom: 16px;
+          border-bottom: 2px solid #edf2f7;
+        }
+        .modal-head h3 {
+          font-size: 18px;
+          color: #1a365d;
+          font-weight: 700;
+        }
+        .close-btn {
+          width: 32px; height: 32px;
+          border: none;
+          background: #edf2f7;
+          border-radius: 50%;
+          font-size: 18px;
+          cursor: pointer;
+          color: #718096;
+          display: flex; align-items: center; justify-content: center;
+          transition: all .2s;
+          line-height: 1;
+        }
+        .close-btn:hover { background: #e2e8f0; color: #2d3748; }
+
+        /* ===== CONFIRM DIALOG ===== */
+        .confirm-overlay {
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,.55);
+          z-index: 2000;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box {
+          background: #fff;
+          border-radius: 16px;
+          padding: 36px 30px;
+          max-width: 380px;
+          width: 100%;
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0,0,0,.25);
+          animation: modalIn .25s ease;
+        }
+        .confirm-icon { font-size: 48px; margin-bottom: 12px; }
+        .confirm-box h3 { color: #1a365d; font-size: 20px; margin-bottom: 8px; }
+        .confirm-box p  { color: #718096; font-size: 14px; margin-bottom: 24px; }
+        .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+          width: 16px; height: 16px;
+          border: 2px solid rgba(255,255,255,.4);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin .6s linear infinite;
+          display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+          .card { padding: 20px; }
+          header h1 { font-size: 22px; }
+          #toast { right: 12px; left: 12px; min-width: unset; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ======== HEADER ======== -->
+<header>
+    <h1>🪪 Manajemen Data KTP</h1>
+    <p>Sistem CRUD Kartu Tanda Penduduk — Spring Boot REST API + jQuery Ajax</p>
+</header>
+
+<!-- ======== TOAST ======== -->
+<div id="toast"></div>
+
+<!-- ======== CONFIRM DELETE ======== -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon">🗑️</div>
+        <h3>Hapus Data KTP?</h3>
+        <p>Data yang sudah dihapus tidak dapat dikembalikan. Lanjutkan?</p>
+        <div class="confirm-btns">
+            <button class="btn btn-red" id="btnConfirmYes">Ya, Hapus</button>
+            <button class="btn btn-gray" onclick="closeConfirm()">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======== MAIN CONTENT ======== -->
+<div class="container">
+
+    <!-- FORM TAMBAH DATA -->
+    <div class="card">
+        <div class="card-title">➕ Tambah Data KTP Baru</div>
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Nomor KTP <span>*</span></label>
+                <input type="text" id="f_nomorKtp"
+                       maxlength="16"
+                       placeholder="16 digit angka (contoh: 3201234567890001)">
+            </div>
+
+            <div class="form-group">
+                <label>Nama Lengkap <span>*</span></label>
+                <input type="text" id="f_namaLengkap"
+                       placeholder="Nama sesuai KTP">
+            </div>
+
+            <div class="form-group">
+                <label>Tanggal Lahir <span>*</span></label>
+                <input type="date" id="f_tanggalLahir">
+            </div>
+
+            <div class="form-group">
+                <label>Jenis Kelamin <span>*</span></label>
+                <select id="f_jenisKelamin">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="LAKI_LAKI">Laki-laki</option>
+                    <option value="PEREMPUAN">Perempuan</option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <label>Alamat <span>*</span></label>
+                <input type="text" id="f_alamat"
+                       placeholder="Alamat lengkap sesuai KTP">
+            </div>
+
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-blue" id="btnSimpan" onclick="createKtp()">
+                💾 Simpan Data
+            </button>
+            <button class="btn btn-gray" onclick="resetForm()">
+                ↺ Reset Form
+            </button>
+        </div>
+    </div>
+
+    <!-- TABEL DATA KTP -->
+    <div class="card">
+        <div class="table-header">
+            <div class="card-title" style="margin-bottom:0">
+                📋 Daftar Data KTP
+                <span class="data-count" id="dataCount">0 data</span>
+            </div>
+            <button class="btn btn-blue btn-sm" onclick="readAllKtp()">
+                🔄 Refresh
+            </button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width:50px">No</th>
+                    <th>Nomor KTP</th>
+                    <th>Nama Lengkap</th>
+                    <th>Tgl. Lahir</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Alamat</th>
+                    <th style="width:140px;text-align:center">Aksi</th>
+                </tr>
+                </thead>
+                <tbody id="ktpTableBody">
+                <tr class="state-row">
+                    <td colspan="7">
+                        <span class="state-icon">⏳</span>
+                        Memuat data...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div><!-- end .container -->
+
+<!-- ======== MODAL EDIT ======== -->
+<div class="overlay" id="editOverlay">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>✏️ Edit Data KTP</h3>
+            <button class="close-btn" onclick="closeEditModal()">✕</button>
+        </div>
+
+        <input type="hidden" id="e_id">
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nomor KTP <span style="color:red">*</span></label>
+                <input type="text" id="e_nomorKtp" maxlength="16">
+            </div>
+            <div class="form-group">
+                <label>Nama Lengkap <span style="color:red">*</span></label>
+                <input type="text" id="e_namaLengkap">
+            </div>
+            <div class="form-group">
+                <label>Tanggal Lahir <span style="color:red">*</span></label>
+                <input type="date" id="e_tanggalLahir">
+            </div>
+            <div class="form-group">
+                <label>Jenis Kelamin <span style="color:red">*</span></label>
+                <select id="e_jenisKelamin">
+                    <option value="LAKI_LAKI">Laki-laki</option>
+                    <option value="PEREMPUAN">Perempuan</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label>Alamat <span style="color:red">*</span></label>
+                <input type="text" id="e_alamat">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-yellow" id="btnUpdate" onclick="updateKtp()">
+                ✔️ Update Data
+            </button>
+            <button class="btn btn-gray" onclick="closeEditModal()">
+                Batal
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======== JAVASCRIPT ======== -->
+<script>
+    /* ==============================================
+       KONFIGURASI
+       ============================================== */
+    const BASE_URL = 'http://localhost:8080/ktp';
+    let pendingDeleteId = null;
+
+    /* ==============================================
+       TOAST NOTIFICATION
+       ============================================== */
+    function showToast(message, type = 'success') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const el = $('#toast');
+      el.attr('class', `toast-${type}`)
+        .css('display', 'flex')
+        .html(`<span>${icons[type]}</span><span>${message}</span>`);
+      clearTimeout(el.data('timer'));
+      el.data('timer', setTimeout(() => el.fadeOut(400), 3800));
+    }
+
+    /* ==============================================
+       RESET FORM TAMBAH
+       ============================================== */
+    function resetForm() {
+      $('#f_nomorKtp, #f_namaLengkap, #f_alamat').val('');
+      $('#f_tanggalLahir').val('');
+      $('#f_jenisKelamin').val('');
+      $('#f_nomorKtp').focus();
+    }
+
+    /* ==============================================
+       MODAL EDIT
+       ============================================== */
+    function closeEditModal() {
+      $('#editOverlay').removeClass('active');
+    }
+
+    /* ==============================================
+       CONFIRM DELETE
+       ============================================== */
+    function showConfirm(id) {
+      pendingDeleteId = id;
+      $('#confirmOverlay').addClass('active');
+    }
+    function closeConfirm() {
+      pendingDeleteId = null;
+      $('#confirmOverlay').removeClass('active');
+    }
+
+    /* ==============================================
+       HELPER — Ambil data form
+       ============================================== */
+    function getFormData(prefix) {
+      return {
+        nomorKtp    : $(`#${prefix}_nomorKtp`).val().trim(),
+        namaLengkap : $(`#${prefix}_namaLengkap`).val().trim(),
+        alamat      : $(`#${prefix}_alamat`).val().trim(),
+        tanggalLahir: $(`#${prefix}_tanggalLahir`).val(),
+        jenisKelamin: $(`#${prefix}_jenisKelamin`).val()
+      };
+    }
+
+    function validateData(data) {
+      if (!data.nomorKtp || !data.namaLengkap || !data.alamat
+          || !data.tanggalLahir || !data.jenisKelamin) {
+        showToast('Semua field wajib diisi!', 'error');
+        return false;
+      }
+      if (!/^\d{16}$/.test(data.nomorKtp)) {
+        showToast('Nomor KTP harus tepat 16 digit angka!', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    function setLoading(btnId, loading, defaultHtml) {
+      const btn = $(`#${btnId}`);
+      if (loading) {
+        btn.html('<span class="spinner"></span> Memproses...').prop('disabled', true);
+      } else {
+        btn.html(defaultHtml).prop('disabled', false);
+      }
+    }
+
+    /* ==============================================
+       READ ALL — GET /ktp
+       ============================================== */
+    function readAllKtp() {
+      $('#ktpTableBody').html(`
+        <tr class="state-row">
+          <td colspan="7">
+            <span class="state-icon">⏳</span>Memuat data...
+          </td>
+        </tr>`);
+
+      $.ajax({
+        url    : BASE_URL,
+        method : 'GET',
+        success: function (res) {
+          const tbody = $('#ktpTableBody');
+          tbody.empty();
+
+          const list = res.data || [];
+          $('#dataCount').text(list.length + ' data');
+
+          if (list.length === 0) {
+            tbody.html(`
+              <tr class="state-row">
+                <td colspan="7">
+                  <span class="state-icon">📭</span>
+                  Belum ada data KTP. Silakan tambahkan data baru.
+                </td>
+              </tr>`);
+            return;
+          }
+
+          list.forEach(function (k, i) {
+            const badge = k.jenisKelamin === 'LAKI_LAKI'
+              ? '<span class="badge badge-l">♂ Laki-laki</span>'
+              : '<span class="badge badge-p">♀ Perempuan</span>';
+
+            tbody.append(`
+              <tr>
+                <td class="center">${i + 1}</td>
+                <td><span class="ktp-number">${k.nomorKtp}</span></td>
+                <td><strong>${k.namaLengkap}</strong></td>
+                <td>${k.tanggalLahir}</td>
+                <td>${badge}</td>
+                <td>
+                  <div class="alamat-cell" title="${k.alamat}">${k.alamat}</div>
+                </td>
+                <td>
+                  <div class="action-btns" style="justify-content:center">
+                    <button class="btn btn-yellow btn-sm"
+                      onclick="openEditModal(${k.id})">✏️ Edit</button>
+                    <button class="btn btn-red btn-sm"
+                      onclick="showConfirm(${k.id})">🗑️</button>
+                  </div>
+                </td>
+              </tr>`);
+          });
+        },
+        error: function (xhr) {
+          const msg = xhr.responseJSON?.message || 'Gagal memuat data';
+          showToast(msg, 'error');
+          $('#ktpTableBody').html(`
+            <tr class="state-row">
+              <td colspan="7">
+                <span class="state-icon">⚠️</span>Gagal memuat data. Cek koneksi server.
+              </td>
+            </tr>`);
+        }
+      });
+    }
+
+    /* ==============================================
+       CREATE — POST /ktp
+       ============================================== */
+    function createKtp() {
+      const data = getFormData('f');
+      if (!validateData(data)) return;
+
+      setLoading('btnSimpan', true, '');
+
+      $.ajax({
+        url        : BASE_URL,
+        method     : 'POST',
+        contentType: 'application/json',
+        data       : JSON.stringify(data),
+        success    : function (res) {
+          showToast(res.message, 'success');
+          resetForm();
+          readAllKtp();
+        },
+        error: function (xhr) {
+          const errData = xhr.responseJSON;
+          let msg = 'Gagal menyimpan data';
+          if (errData) {
+            // Jika ada detail validasi per-field
+            if (typeof errData.data === 'object' && errData.data !== null) {
+              msg = Object.values(errData.data).join(' | ');
+            } else {
+              msg = errData.message || msg;
+            }
+          }
+          showToast(msg, 'error');
+        },
+        complete: function () {
+          setLoading('btnSimpan', false, '💾 Simpan Data');
+        }
+      });
+    }
+
+    /* ==============================================
+       READ BY ID + BUKA MODAL EDIT — GET /ktp/{id}
+       ============================================== */
+    function openEditModal(id) {
+      $.ajax({
+        url    : BASE_URL + '/' + id,
+        method : 'GET',
+        success: function (res) {
+          const k = res.data;
+          $('#e_id').val(k.id);
+          $('#e_nomorKtp').val(k.nomorKtp);
+          $('#e_namaLengkap').val(k.namaLengkap);
+          $('#e_alamat').val(k.alamat);
+          $('#e_tanggalLahir').val(k.tanggalLahir);
+          $('#e_jenisKelamin').val(k.jenisKelamin);
+          $('#editOverlay').addClass('active');
+        },
+        error: function () {
+          showToast('Data tidak ditemukan', 'error');
+        }
+      });
+    }
+
+    /* ==============================================
+       UPDATE — PUT /ktp/{id}
+       ============================================== */
+    function updateKtp() {
+      const id   = $('#e_id').val();
+      const data = getFormData('e');
+      if (!validateData(data)) return;
+
+      setLoading('btnUpdate', true, '');
+
+      $.ajax({
+        url        : BASE_URL + '/' + id,
+        method     : 'PUT',
+        contentType: 'application/json',
+        data       : JSON.stringify(data),
+        success    : function (res) {
+          showToast(res.message, 'success');
+          closeEditModal();
+          readAllKtp();
+        },
+        error: function (xhr) {
+          const errData = xhr.responseJSON;
+          let msg = 'Gagal mengupdate data';
+          if (errData) {
+            if (typeof errData.data === 'object' && errData.data !== null) {
+              msg = Object.values(errData.data).join(' | ');
+            } else {
+              msg = errData.message || msg;
+            }
+          }
+          showToast(msg, 'error');
+        },
+        complete: function () {
+          setLoading('btnUpdate', false, '✔️ Update Data');
+        }
+      });
+    }
+
+    /* ==============================================
+       DELETE — DELETE /ktp/{id}
+       ============================================== */
+    $('#btnConfirmYes').on('click', function () {
+      if (!pendingDeleteId) return;
+
+      const id = pendingDeleteId;
+      closeConfirm();
+
+      $.ajax({
+        url    : BASE_URL + '/' + id,
+        method : 'DELETE',
+        success: function (res) {
+          showToast(res.message, 'success');
+          readAllKtp();
+        },
+        error: function (xhr) {
+          const msg = xhr.responseJSON?.message || 'Gagal menghapus data';
+          showToast(msg, 'error');
+        }
+      });
+    });
+
+    /* ==============================================
+       TUTUP MODAL KLIK DI LUAR AREA
+       ============================================== */
+    $('#editOverlay').on('click', function (e) {
+      if ($(e.target).is('#editOverlay')) closeEditModal();
+    });
+    $('#confirmOverlay').on('click', function (e) {
+      if ($(e.target).is('#confirmOverlay')) closeConfirm();
+    });
+
+    /* ==============================================
+       INIT — Load data saat halaman dibuka
+       ============================================== */
+    $(document).ready(function () {
+      readAllKtp();
+    });
+</script>
+
+</body>
+</html>
